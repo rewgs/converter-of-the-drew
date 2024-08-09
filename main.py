@@ -3,20 +3,7 @@ import soundfile as sf
 import numpy
 from typing import Optional
 
-class InvalidSampleRate(Exception):
-    """
-    Thrown when supplied sample rate argument is invalid.
-    """
-
-class InvalidBitDepth(Exception):
-    """
-    Thrown when supplied bit depth argument is invalid.
-    """
-
-# class ConvertedFile:
-#     def __init__(self, sample_rate: int, bit_depth: int, path: Optional[Path]=None)
-#         self.sample_rate = sample_rate
-#         self.bit
+from errors import InvalidBitDepth, InvalidSampleRate
 
 
 def get_audio_files(dir: Path, extensions: list[str]) -> list[Path]:
@@ -30,6 +17,33 @@ def verify_dir(dir: Path):
         Path.mkdir(dir, parents=True)
         if dir.exists():
             print(f"{dir.as_posix()} exists!")
+
+
+class AudioFile:
+    """
+    Represents a new audio file created by this app.
+    If destination directory is supplied, the original file is copied and converted with the specified settings.
+    If no destination directory is supplied, the original file is overwritten with the specified settings.
+    """
+    def __init__(self, src: Path, sample_rate: int, bit_depth: int, dst: Optional[Path]=None):
+        self.src: Path = src
+        self.sample_rate = sample_rate
+        self.bit_depth = bit_depth
+        self.dst: Optional[Path] = dst
+
+    def convert(self):
+        """ Converts audio file. """
+
+        def copy():
+            """ Copies with new sample rate/bit depth/name to dst path. """
+
+        def overwrite():
+            """ Overwrites original audio file with new sample rate/bit depth/name. """
+
+        if self.dst is not None:
+            copy()
+        else:
+            overwrite()
 
 
 def convert_audio_files(files: list[Path], sr: int, bd: int, dst: Optional[Path]=None):
@@ -46,6 +60,7 @@ def convert_audio_files(files: list[Path], sr: int, bd: int, dst: Optional[Path]
             with open(f, 'rw') as f:
                 data, samplerate = sf.read(f)
                 sf.write(f, data, sr)
+
 
 
 def convert(src: Path, dst_sr: int, dst_bd: int, dst: Optional[Path]=None):
@@ -75,27 +90,18 @@ def convert(src: Path, dst_sr: int, dst_bd: int, dst: Optional[Path]=None):
         except InvalidBitDepth:
             raise InvalidBitDepth(f"{dst_bd} is not valid!")
         # else:
-            # no exceptions
 
 
-def get_src(path: Optional[Path]=None) -> Path:
+def get_dir(prompt: str, path: Optional[Path]=None) -> Path:
     if path is not None:
-        return path
-    else:
-        new_path: Path = Path(input("Enter path of files to convert: "))
         try:
-            new_path.resolve(strict=True)
+            path.resolve(strict=True)
         except FileNotFoundError as error:
             raise error
         else:
-            return new_path
-
-
-def get_dst(path: Optional[Path]=None) -> Path:
-    if path is not None:
-        return path
+            return path
     else:
-        new_path: Path = Path(input("Enter where to write converted files: "))
+        new_path: Path = Path(input(prompt))
         try:
             new_path.resolve(strict=True)
         except FileNotFoundError as error:
@@ -110,9 +116,10 @@ def main():
     DEV_SR: int = 44100
     DEV_BD: int = 16
 
-    src = get_src(DEV_SRC)
-    dst = get_dst(DEV_DST)
-    convert(src, DEV_SR, DEV_BD, dst)
+    src = get_dir("Enter path of files to convert: " , DEV_DST)
+    dst = get_dir("Enter where to write converted files: ", DEV_SRC)
+
+    # convert(src, DEV_SR, DEV_BD, dst)
 
 
 if __name__ == "__main__":
